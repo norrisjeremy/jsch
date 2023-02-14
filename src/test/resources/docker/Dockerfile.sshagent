@@ -5,6 +5,9 @@ RUN apk update && \
     apk upgrade && \
     apk add openssh su-exec && \
     rm /var/cache/apk/* && \
+    if [ $testuid -gt 0 ]; then if egrep "^[a-zA-Z0-9]+:x:$testuid:" /etc/passwd; then deluser $(egrep "^[a-zA-Z0-9]+:x:$testuid:" /etc/passwd | cut -d: -f1); fi; fi && \
+    if [ $testgid -gt 0 ]; then if egrep "^[a-zA-Z0-9]+:x:[0-9]+:$testgid:" /etc/passwd; then deluser $(egrep "^[a-zA-Z0-9]+:x:[0-9]+:$testgid:" /etc/passwd | cut -d: -f1); fi; fi && \
+    if [ $testgid -gt 0 ]; then if egrep "^[a-zA-Z0-9]+:x:$testgid:" /etc/group; then delgroup $(egrep "^[a-zA-Z0-9]+:x:$testgid:" /etc/group | cut -d: -f1); fi; fi && \
     addgroup -g $testgid testuser && \
     adduser -Du $testuid -G testuser -Hh /testuser -s /bin/sh -g testuser testuser && \
     mkdir /testuser && \
