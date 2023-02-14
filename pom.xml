@@ -100,6 +100,13 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>com.kohlschutter.junixsocket</groupId>
+            <artifactId>junixsocket-native-custom</artifactId>
+            <version>${junixsocket.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>com.kohlschutter</groupId>
             <artifactId>compiler-annotations</artifactId>
             <version>1.5.2</version>
