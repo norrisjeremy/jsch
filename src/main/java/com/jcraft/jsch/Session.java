@@ -75,7 +75,7 @@ public class Session {
   static final int SSH_MSG_CHANNEL_SUCCESS = 99;
   static final int SSH_MSG_CHANNEL_FAILURE = 100;
 
-  private static final int PACKET_MAX_SIZE = 256 * 1024;
+  private static final int PACKET_MAX_SIZE = 1024 * 1024;
 
   private byte[] V_S; // server version
   private byte[] V_C = Util.str2byte("SSH-2.0-JSCH_" + JSch.VERSION); // client version
