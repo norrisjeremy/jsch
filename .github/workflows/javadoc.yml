@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '*'
+  release:
+    types: [published]      
 permissions:
   contents: write
 jobs:
@@ -23,5 +25,5 @@ jobs:
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         with:
-          folder: target/site/apidocs
+          folder: target/reports/apidocs
           target-folder: ${{github.ref_name}}
