@@ -172,6 +172,34 @@ public class UserCertAuthIT {
     doSftp(session);
   }
 
+  /**
+   * Tests RSA certificate authentication using the default {@code PubkeyAcceptedAlgorithms}, which
+   * excludes {@code ssh-rsa-cert-v01@openssh.com} (following OpenSSH defaults). This verifies that
+   * the RSA certificate identity is correctly mapped to SHA-2 certificate algorithm variants
+   * ({@code rsa-sha2-512-cert-v01@openssh.com}, {@code rsa-sha2-256-cert-v01@openssh.com}) and that
+   * the signature uses the negotiated algorithm instead of falling back to {@code ssh-rsa} (SHA-1).
+   *
+   * @throws Exception if any error occurs during key reading, session setup, or connection.
+   */
+  @Test
+  public void opensshCertificateRsaSha2CertTest() throws Exception {
+    HostKey hostKey = readHostKey(
+        ResourceUtil.getResourceFile(this.getClass(), "certificates/docker/ssh_host_rsa_key.pub"));
+    JSch ssh = new JSch();
+    ssh.addIdentity(ResourceUtil.getResourceFile(this.getClass(), "certificates/rsa/root_rsa_key"),
+        ResourceUtil.getResourceFile(this.getClass(), "certificates/rsa/root_rsa_key-cert.pub"),
+        null);
+    ssh.getHostKeyRepository().add(hostKey, null);
+
+    Session session = ssh.getSession("root", sshd.getHost(), sshd.getFirstMappedPort());
+    session.setConfig("enable_auth_none", "yes");
+    session.setConfig("StrictHostKeyChecking", "no");
+    session.setConfig("PreferredAuthentications", "publickey");
+    session.setConfig("server_host_key",
+        "ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256");
+    doSftp(session);
+  }
+
   private Session createEd25519CertSession() throws Exception {
     HostKey hostKey = readHostKey(
         ResourceUtil.getResourceFile(this.getClass(), "certificates/docker/ssh_host_rsa_key.pub"));

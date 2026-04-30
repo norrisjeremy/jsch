@@ -134,6 +134,7 @@ class UserAuthPublicKey extends UserAuth {
         session.getConfig("try_additional_pubkey_algorithms").equals("yes");
 
     List<String> rsamethods = new ArrayList<>();
+    List<String> rsacertmethods = new ArrayList<>();
     List<String> nonrsamethods = new ArrayList<>();
     for (String pkmethod : pkmethods) {
       if (pkmethod.equals("ssh-rsa") || pkmethod.equals("rsa-sha2-256")
@@ -141,6 +142,10 @@ class UserAuthPublicKey extends UserAuth {
           || pkmethod.equals("ssh-rsa-sha256@ssh.com") || pkmethod.equals("ssh-rsa-sha384@ssh.com")
           || pkmethod.equals("ssh-rsa-sha512@ssh.com")) {
         rsamethods.add(pkmethod);
+      } else if (pkmethod.equals("ssh-rsa-cert-v01@openssh.com")
+          || pkmethod.equals("rsa-sha2-256-cert-v01@openssh.com")
+          || pkmethod.equals("rsa-sha2-512-cert-v01@openssh.com")) {
+        rsacertmethods.add(pkmethod);
       } else {
         nonrsamethods.add(pkmethod);
       }
@@ -164,6 +169,8 @@ class UserAuthPublicKey extends UserAuth {
       List<String> ipkmethods = null;
       if (_ipkmethod.equals("ssh-rsa")) {
         ipkmethods = new ArrayList<>(rsamethods);
+      } else if (_ipkmethod.equals("ssh-rsa-cert-v01@openssh.com")) {
+        ipkmethods = new ArrayList<>(rsacertmethods);
       } else if (nonrsamethods.contains(_ipkmethod)) {
         ipkmethods = new ArrayList<>(1);
         ipkmethods.add(_ipkmethod);

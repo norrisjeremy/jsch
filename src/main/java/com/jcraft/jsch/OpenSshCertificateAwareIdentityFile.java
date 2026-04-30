@@ -218,9 +218,11 @@ class OpenSshCertificateAwareIdentityFile implements Identity {
 
   @Override
   public byte[] getSignature(byte[] data, String alg) {
-    String rawKeyType = OpenSshCertificateUtil.getRawKeyType(keyType);
-    // Fall back to keyType if rawKeyType is null (defensive check)
-    return kpair.getSignature(data, rawKeyType != null ? rawKeyType : keyType);
+    String sigAlg = OpenSshCertificateUtil.getRawKeyType(alg);
+    if (sigAlg == null || sigAlg.isEmpty()) {
+      sigAlg = OpenSshCertificateUtil.getRawKeyType(keyType);
+    }
+    return kpair.getSignature(data, sigAlg != null ? sigAlg : keyType);
   }
 
   @Override
