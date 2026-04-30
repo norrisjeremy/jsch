@@ -1,6 +1,8 @@
 package com.jcraft.jsch;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -387,5 +389,67 @@ public class OpenSshCertificateAwareIdentityFileTest {
         exceptionMessage.toLowerCase(Locale.ROOT).contains("mismatch")
             || exceptionMessage.contains("does not match"),
         "Exception message should indicate key type mismatch: " + exceptionMessage);
+  }
+
+  @Test
+  public void testGetSignature_usesRsaSha2_512WhenCertAlgProvided() throws Exception {
+    Identity identity = loadRsaCertIdentity();
+    byte[] data = "test data to sign".getBytes(StandardCharsets.UTF_8);
+
+    byte[] signature = identity.getSignature(data, "rsa-sha2-512-cert-v01@openssh.com");
+
+    assertNotNull(signature, "Signature should not be null");
+    String sigAlg = extractSignatureAlgorithm(signature);
+    assertEquals("rsa-sha2-512", sigAlg, "Signature should use rsa-sha2-512, not ssh-rsa (SHA-1)");
+  }
+
+  @Test
+  public void testGetSignature_usesRsaSha2_256WhenCertAlgProvided() throws Exception {
+    Identity identity = loadRsaCertIdentity();
+    byte[] data = "test data to sign".getBytes(StandardCharsets.UTF_8);
+
+    byte[] signature = identity.getSignature(data, "rsa-sha2-256-cert-v01@openssh.com");
+
+    assertNotNull(signature, "Signature should not be null");
+    String sigAlg = extractSignatureAlgorithm(signature);
+    assertEquals("rsa-sha2-256", sigAlg, "Signature should use rsa-sha2-256, not ssh-rsa (SHA-1)");
+  }
+
+  @Test
+  public void testGetSignature_usesRsaSha2_512WhenBaseAlgProvided() throws Exception {
+    Identity identity = loadRsaCertIdentity();
+    byte[] data = "test data to sign".getBytes(StandardCharsets.UTF_8);
+
+    byte[] signature = identity.getSignature(data, "rsa-sha2-512");
+
+    assertNotNull(signature, "Signature should not be null");
+    String sigAlg = extractSignatureAlgorithm(signature);
+    assertEquals("rsa-sha2-512", sigAlg);
+  }
+
+  @Test
+  public void testGetSignature_fallsBackToSshRsaWhenAlgIsNull() throws Exception {
+    Identity identity = loadRsaCertIdentity();
+    byte[] data = "test data to sign".getBytes(StandardCharsets.UTF_8);
+
+    byte[] signature = identity.getSignature(data, null);
+
+    assertNotNull(signature, "Signature should not be null");
+    String sigAlg = extractSignatureAlgorithm(signature);
+    assertEquals("ssh-rsa", sigAlg, "Signature should fall back to ssh-rsa when alg is null");
+  }
+
+  private Identity loadRsaCertIdentity() throws JSchException {
+    JSch jsch = new JSch();
+    String privateKeyPath = "src/test/resources/certificates/rsa/root_rsa_key";
+    String certificatePath = "src/test/resources/certificates/rsa/root_rsa_key-cert.pub";
+    return OpenSshCertificateAwareIdentityFile.newInstance(privateKeyPath, certificatePath,
+        jsch.instLogger);
+  }
+
+  private String extractSignatureAlgorithm(byte[] signatureBlob) {
+    Buffer buf = new Buffer(signatureBlob);
+    byte[] algBytes = buf.getString();
+    return Util.byte2str(algBytes, StandardCharsets.UTF_8);
   }
 }
