@@ -214,6 +214,9 @@ public class Session {
       throw new JSchException("session is already connected");
     }
     initialKex = true;
+    // Retain these values after disconnect, but not across connection attempts.
+    hostkey = null;
+    hostCertificate = null;
 
     io = new IO();
     if (random == null) {
@@ -967,6 +970,7 @@ public class Session {
     OpenSshCertificate certificate = kex.getHostKeyCertificate();
     if (certificate != null) {
       try {
+        hostCertificate = new HostCertificate(chost, certificate);
         OpenSshCertificateHostKeyVerifier.checkHostCertificate(this, certificate);
         if (getLogger().isEnabled(Logger.INFO)) {
           getLogger().log(Logger.INFO, "Host '" + chost + "' is known and matches the "
@@ -3288,9 +3292,14 @@ public class Session {
   }
 
   private HostKey hostkey = null;
+  private HostCertificate hostCertificate = null;
 
   public HostKey getHostKey() {
     return hostkey;
+  }
+
+  public HostCertificate getHostCertificate() {
+    return hostCertificate;
   }
 
   public String getHost() {

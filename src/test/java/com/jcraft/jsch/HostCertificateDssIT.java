@@ -2,6 +2,10 @@ package com.jcraft.jsch;
 
 import static com.jcraft.jsch.ResourceUtil.getResourceFile;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -80,8 +84,13 @@ public class HostCertificateDssIT {
     session.setConfig("StrictHostKeyChecking", "yes");
     session.setConfig("PreferredAuthentications", "publickey");
     session.setConfig("server_host_key", "ssh-dss-cert-v01@openssh.com");
+    assertNull(session.getHostKey(), "HostKey");
+    assertNull(session.getHostCertificate(), "HostCertificate");
 
     assertDoesNotThrow(() -> connectSftp(session));
+
+    assertNull(session.getHostKey(), "HostKey");
+    checkCertficate(session);
   }
 
   /**
@@ -101,8 +110,13 @@ public class HostCertificateDssIT {
     session.setConfig("StrictHostKeyChecking", "yes");
     session.setConfig("PreferredAuthentications", "publickey");
     session.setConfig("server_host_key", "ssh-dss-cert-v01@openssh.com");
+    assertNull(session.getHostKey(), "HostKey");
+    assertNull(session.getHostCertificate(), "HostCertificate");
 
     assertThrows(JSchHostKeyException.class, () -> connectSftp(session));
+
+    assertNotNull(session.getHostKey(), "HostKey");
+    checkCertficate(session);
   }
 
   private void connectSftp(Session session) throws JSchException {
@@ -135,5 +149,32 @@ public class HostCertificateDssIT {
     String portHost = "[" + host + "]:" + port;
     content = content.replace("localhost", portHost);
     ssh.setKnownHosts(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
+  }
+
+  /**
+   * A utility method for checking HostCertificate content.
+   */
+  private void checkCertficate(Session session) {
+    HostCertificate certificate = session.getHostCertificate();
+
+    assertNotNull(certificate, "HostCertificate");
+    assertTrue(certificate.getHost().contains("localhost"), "Host");
+    assertEquals("ssh-dss-cert-v01@openssh.com", certificate.getKeyType(), "KeyType");
+    assertFalse(certificate.getPublicKey().isEmpty(), "PublicKey");
+    assertTrue(certificate.getPublicKeyFingerPrint(session.jsch).startsWith("SHA256:"),
+        "PublicKeyFingerPrint");
+    assertEquals(2, certificate.getCertificateRole(), "CertificateRole");
+    assertEquals(0, certificate.getSerialNumber(), "SerialNumber");
+    assertEquals("localhost", certificate.getIdentifier(), "Identifier");
+    assertTrue(certificate.getPrincipals().contains("localhost"), "Principals");
+    assertEquals(315532800L, certificate.getValidAfter(), "ValidAfter");
+    assertEquals(4102358400L, certificate.getValidBefore(), "ValidBefore");
+    assertTrue(certificate.getCriticalOptions().isEmpty(), "CriticalOptions");
+    assertTrue(certificate.getExtensions().isEmpty(), "Extensions");
+    assertFalse(certificate.getSignatureKey().isEmpty(), "SignatureKey");
+    assertTrue(certificate.getSignatureKeyFingerPrint(session.jsch).startsWith("SHA256:"),
+        "SignatureKeyFingerPrint");
+    assertEquals("ssh-ed25519", certificate.getSignatureKeyType(), "SignatureKeyType");
+    assertEquals("ssh-ed25519", certificate.getSignatureAlgorithm(), "SignatureAlgorithm");
   }
 }

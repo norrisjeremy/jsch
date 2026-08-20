@@ -2,6 +2,10 @@ package com.jcraft.jsch;
 
 import static com.jcraft.jsch.ResourceUtil.getResourceFile;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.condition.JRE.JAVA_15;
@@ -76,7 +80,13 @@ public class HostCertificateEd448IT {
     Session session = createHappyPathSession();
     session.setConfig("keypairgen.eddsa", "com.jcraft.jsch.jce.KeyPairGenEdDSA");
     session.setConfig("ssh-ed448", "com.jcraft.jsch.jce.SignatureEd448");
+    assertNull(session.getHostKey(), "HostKey");
+    assertNull(session.getHostCertificate(), "HostCertificate");
+
     assertDoesNotThrow(() -> connectSftp(session));
+
+    assertNull(session.getHostKey(), "HostKey");
+    checkCertficate(session);
   }
 
   /**
@@ -87,7 +97,13 @@ public class HostCertificateEd448IT {
     Session session = createHappyPathSession();
     session.setConfig("keypairgen.eddsa", "com.jcraft.jsch.bc.KeyPairGenEdDSA");
     session.setConfig("ssh-ed448", "com.jcraft.jsch.bc.SignatureEd448");
+    assertNull(session.getHostKey(), "HostKey");
+    assertNull(session.getHostCertificate(), "HostCertificate");
+
     assertDoesNotThrow(() -> connectSftp(session));
+
+    assertNull(session.getHostKey(), "HostKey");
+    checkCertficate(session);
   }
 
   /**
@@ -96,7 +112,13 @@ public class HostCertificateEd448IT {
   @Test
   public void testEd448HappyPath() throws Exception {
     Session session = createHappyPathSession();
+    assertNull(session.getHostKey(), "HostKey");
+    assertNull(session.getHostCertificate(), "HostCertificate");
+
     assertDoesNotThrow(() -> connectSftp(session));
+
+    assertNull(session.getHostKey(), "HostKey");
+    checkCertficate(session);
   }
 
   // ==================== Untrusted CA tests ====================
@@ -111,7 +133,13 @@ public class HostCertificateEd448IT {
     Session session = createNotTrustedCASession();
     session.setConfig("keypairgen.eddsa", "com.jcraft.jsch.jce.KeyPairGenEdDSA");
     session.setConfig("ssh-ed448", "com.jcraft.jsch.jce.SignatureEd448");
+    assertNull(session.getHostKey(), "HostKey");
+    assertNull(session.getHostCertificate(), "HostCertificate");
+
     assertThrows(JSchHostKeyException.class, () -> connectSftp(session));
+
+    assertNotNull(session.getHostKey(), "HostKey");
+    checkCertficate(session);
   }
 
   /**
@@ -123,7 +151,13 @@ public class HostCertificateEd448IT {
     Session session = createNotTrustedCASession();
     session.setConfig("keypairgen.eddsa", "com.jcraft.jsch.bc.KeyPairGenEdDSA");
     session.setConfig("ssh-ed448", "com.jcraft.jsch.bc.SignatureEd448");
+    assertNull(session.getHostKey(), "HostKey");
+    assertNull(session.getHostCertificate(), "HostCertificate");
+
     assertThrows(JSchHostKeyException.class, () -> connectSftp(session));
+
+    assertNotNull(session.getHostKey(), "HostKey");
+    checkCertficate(session);
   }
 
   /**
@@ -134,7 +168,13 @@ public class HostCertificateEd448IT {
   @Test
   public void testEd448NotTrustedCA() throws Exception {
     Session session = createNotTrustedCASession();
+    assertNull(session.getHostKey(), "HostKey");
+    assertNull(session.getHostCertificate(), "HostCertificate");
+
     assertThrows(JSchHostKeyException.class, () -> connectSftp(session));
+
+    assertNotNull(session.getHostKey(), "HostKey");
+    checkCertficate(session);
   }
 
   // ==================== Helper methods ====================
@@ -196,5 +236,32 @@ public class HostCertificateEd448IT {
     String portHost = "[" + host + "]:" + port;
     content = content.replace("localhost", portHost);
     ssh.setKnownHosts(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
+  }
+
+  /**
+   * A utility method for checking HostCertificate content.
+   */
+  private void checkCertficate(Session session) {
+    HostCertificate certificate = session.getHostCertificate();
+
+    assertNotNull(certificate, "HostCertificate");
+    assertTrue(certificate.getHost().contains("localhost"), "Host");
+    assertEquals("ssh-ed448-cert-v01@openssh.com", certificate.getKeyType(), "KeyType");
+    assertFalse(certificate.getPublicKey().isEmpty(), "PublicKey");
+    assertTrue(certificate.getPublicKeyFingerPrint(session.jsch).startsWith("SHA256:"),
+        "PublicKeyFingerPrint");
+    assertEquals(2, certificate.getCertificateRole(), "CertificateRole");
+    assertEquals(0, certificate.getSerialNumber(), "SerialNumber");
+    assertEquals("localhost", certificate.getIdentifier(), "Identifier");
+    assertTrue(certificate.getPrincipals().contains("localhost"), "Principals");
+    assertEquals(0L, certificate.getValidAfter(), "ValidAfter");
+    assertEquals(253402214400L, certificate.getValidBefore(), "ValidBefore");
+    assertTrue(certificate.getCriticalOptions().isEmpty(), "CriticalOptions");
+    assertTrue(certificate.getExtensions().isEmpty(), "Extensions");
+    assertFalse(certificate.getSignatureKey().isEmpty(), "SignatureKey");
+    assertTrue(certificate.getSignatureKeyFingerPrint(session.jsch).startsWith("SHA256:"),
+        "SignatureKeyFingerPrint");
+    assertEquals("ssh-ed25519", certificate.getSignatureKeyType(), "SignatureKeyType");
+    assertEquals("ssh-ed25519", certificate.getSignatureAlgorithm(), "SignatureAlgorithm");
   }
 }
