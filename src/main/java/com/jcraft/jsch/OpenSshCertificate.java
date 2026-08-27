@@ -2,6 +2,7 @@ package com.jcraft.jsch;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -92,12 +93,12 @@ class OpenSshCertificate {
   /**
    * Critical options that must be recognized by the SSH implementation
    */
-  private final Map<String, String> criticalOptions;
+  private final Map<String, byte[]> criticalOptions;
 
   /**
    * Extensions that provide additional functionality
    */
-  private final Map<String, String> extensions;
+  private final Map<String, byte[]> extensions;
 
   /**
    * Reserved field for future use
@@ -176,12 +177,12 @@ class OpenSshCertificate {
     return validBefore;
   }
 
-  Map<String, String> getCriticalOptions() {
-    return criticalOptions == null ? null : Collections.unmodifiableMap(criticalOptions);
+  Map<String, byte[]> getCriticalOptions() {
+    return criticalOptions == null ? null : cloneMap(criticalOptions);
   }
 
-  Map<String, String> getExtensions() {
-    return extensions == null ? null : Collections.unmodifiableMap(extensions);
+  Map<String, byte[]> getExtensions() {
+    return extensions == null ? null : cloneMap(extensions);
   }
 
   byte[] getReserved() {
@@ -212,6 +213,18 @@ class OpenSshCertificate {
     return message == null ? null : message.clone();
   }
 
+  static Map<String, byte[]> cloneMap(Map<String, byte[]> map) {
+    if (map.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    Map<String, byte[]> ret = new LinkedHashMap<>();
+    for (Map.Entry<String, byte[]> entry : map.entrySet()) {
+      ret.put(entry.getKey(), entry.getValue().clone());
+    }
+    return Collections.unmodifiableMap(ret);
+  }
+
   /**
    * A static inner builder class for creating immutable OpenSshCertificate instances.
    */
@@ -225,8 +238,8 @@ class OpenSshCertificate {
     private Collection<String> principals;
     private long validAfter = MIN_VALIDITY;
     private long validBefore = MAX_VALIDITY;
-    private Map<String, String> criticalOptions;
-    private Map<String, String> extensions;
+    private Map<String, byte[]> criticalOptions;
+    private Map<String, byte[]> extensions;
     private byte[] reserved;
     private byte[] signatureKey;
     private byte[] signature;
@@ -279,12 +292,12 @@ class OpenSshCertificate {
       return this;
     }
 
-    Builder criticalOptions(Map<String, String> opts) {
+    Builder criticalOptions(Map<String, byte[]> opts) {
       this.criticalOptions = opts;
       return this;
     }
 
-    Builder extensions(Map<String, String> exts) {
+    Builder extensions(Map<String, byte[]> exts) {
       this.extensions = exts;
       return this;
     }

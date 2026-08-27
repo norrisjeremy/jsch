@@ -1,5 +1,6 @@
 package com.jcraft.jsch;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -28,8 +29,8 @@ public class OpenSshCertificateHostKeyVerifierTest {
    */
   @Test
   public void testCheckHostCertificate_withCriticalOptions_shouldReject() throws Exception {
-    Map<String, String> criticalOptions = new HashMap<>();
-    criticalOptions.put("force-command", "/bin/false");
+    Map<String, byte[]> criticalOptions = new HashMap<>();
+    criticalOptions.put("force-command", "/bin/false".getBytes(UTF_8));
 
     OpenSshCertificate cert =
         createValidHostCertificateBuilder().criticalOptions(criticalOptions).build();
@@ -44,9 +45,9 @@ public class OpenSshCertificateHostKeyVerifierTest {
    */
   @Test
   public void testCheckHostCertificate_withMultipleCriticalOptions() {
-    Map<String, String> criticalOptions = new HashMap<>();
-    criticalOptions.put("force-command", "/bin/false");
-    criticalOptions.put("source-address", "192.168.1.0/24");
+    Map<String, byte[]> criticalOptions = new HashMap<>();
+    criticalOptions.put("force-command", "/bin/false".getBytes(UTF_8));
+    criticalOptions.put("source-address", "192.168.1.0/24".getBytes(UTF_8));
 
     OpenSshCertificate cert =
         createValidHostCertificateBuilder().criticalOptions(criticalOptions).build();

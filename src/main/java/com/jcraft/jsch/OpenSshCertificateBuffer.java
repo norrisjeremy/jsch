@@ -83,7 +83,7 @@ class OpenSshCertificateBuffer extends Buffer {
    *
    * @return map of critical option names to values
    */
-  Map<String, String> getCriticalOptions() {
+  Map<String, byte[]> getCriticalOptions() {
     return getKeyValueData();
   }
 
@@ -96,7 +96,7 @@ class OpenSshCertificateBuffer extends Buffer {
    *
    * @return map of extension names to values
    */
-  Map<String, String> getExtensions() {
+  Map<String, byte[]> getExtensions() {
     return getKeyValueData();
   }
 
@@ -110,14 +110,14 @@ class OpenSshCertificateBuffer extends Buffer {
    *
    * @return map of keys to values
    */
-  private Map<String, String> getKeyValueData() {
-    Map<String, String> map = new LinkedHashMap<>();
+  private Map<String, byte[]> getKeyValueData() {
+    Map<String, byte[]> map = new LinkedHashMap<>();
 
     if (getLength() > 0) {
       OpenSshCertificateBuffer keyValueDataBuffer = new OpenSshCertificateBuffer(getString());
       while (keyValueDataBuffer.getLength() > 0) {
         String key = Util.byte2str(keyValueDataBuffer.getString(), StandardCharsets.UTF_8);
-        String value = Util.byte2str(keyValueDataBuffer.getString(), StandardCharsets.UTF_8);
+        byte[] value = keyValueDataBuffer.getString();
         map.put(key, value);
       }
     }
