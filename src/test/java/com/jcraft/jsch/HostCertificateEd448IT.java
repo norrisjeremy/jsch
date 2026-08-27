@@ -86,7 +86,9 @@ public class HostCertificateEd448IT {
     assertDoesNotThrow(() -> connectSftp(session));
 
     assertNull(session.getHostKey(), "HostKey");
-    checkCertficate(session);
+
+    HostCertificate certificate = session.getHostCertificate();
+    checkCertficate(certificate, session.jsch);
   }
 
   /**
@@ -103,7 +105,9 @@ public class HostCertificateEd448IT {
     assertDoesNotThrow(() -> connectSftp(session));
 
     assertNull(session.getHostKey(), "HostKey");
-    checkCertficate(session);
+
+    HostCertificate certificate = session.getHostCertificate();
+    checkCertficate(certificate, session.jsch);
   }
 
   /**
@@ -118,7 +122,9 @@ public class HostCertificateEd448IT {
     assertDoesNotThrow(() -> connectSftp(session));
 
     assertNull(session.getHostKey(), "HostKey");
-    checkCertficate(session);
+
+    HostCertificate certificate = session.getHostCertificate();
+    checkCertficate(certificate, session.jsch);
   }
 
   // ==================== Untrusted CA tests ====================
@@ -138,8 +144,13 @@ public class HostCertificateEd448IT {
 
     assertThrows(JSchHostKeyException.class, () -> connectSftp(session));
 
-    assertNotNull(session.getHostKey(), "HostKey");
-    checkCertficate(session);
+    HostKey hk = session.getHostKey();
+    checkKey(hk, session.jsch);
+
+    HostCertificate certificate = session.getHostCertificate();
+    checkCertficate(certificate, session.jsch);
+
+    checkCertificateToKey(certificate, hk, session.jsch);
   }
 
   /**
@@ -156,8 +167,13 @@ public class HostCertificateEd448IT {
 
     assertThrows(JSchHostKeyException.class, () -> connectSftp(session));
 
-    assertNotNull(session.getHostKey(), "HostKey");
-    checkCertficate(session);
+    HostKey hk = session.getHostKey();
+    checkKey(hk, session.jsch);
+
+    HostCertificate certificate = session.getHostCertificate();
+    checkCertficate(certificate, session.jsch);
+
+    checkCertificateToKey(certificate, hk, session.jsch);
   }
 
   /**
@@ -173,8 +189,13 @@ public class HostCertificateEd448IT {
 
     assertThrows(JSchHostKeyException.class, () -> connectSftp(session));
 
-    assertNotNull(session.getHostKey(), "HostKey");
-    checkCertficate(session);
+    HostKey hk = session.getHostKey();
+    checkKey(hk, session.jsch);
+
+    HostCertificate certificate = session.getHostCertificate();
+    checkCertficate(certificate, session.jsch);
+
+    checkCertificateToKey(certificate, hk, session.jsch);
   }
 
   // ==================== Helper methods ====================
@@ -241,14 +262,12 @@ public class HostCertificateEd448IT {
   /**
    * A utility method for checking HostCertificate content.
    */
-  private void checkCertficate(Session session) {
-    HostCertificate certificate = session.getHostCertificate();
-
+  private void checkCertficate(HostCertificate certificate, JSch jsch) {
     assertNotNull(certificate, "HostCertificate");
     assertTrue(certificate.getHost().contains("localhost"), "Host");
     assertEquals("ssh-ed448-cert-v01@openssh.com", certificate.getKeyType(), "KeyType");
     assertFalse(certificate.getPublicKey().isEmpty(), "PublicKey");
-    assertTrue(certificate.getPublicKeyFingerPrint(session.jsch).startsWith("SHA256:"),
+    assertTrue(certificate.getPublicKeyFingerPrint(jsch).startsWith("SHA256:"),
         "PublicKeyFingerPrint");
     assertEquals(2, certificate.getCertificateRole(), "CertificateRole");
     assertEquals(0, certificate.getSerialNumber(), "SerialNumber");
@@ -259,9 +278,31 @@ public class HostCertificateEd448IT {
     assertTrue(certificate.getCriticalOptions().isEmpty(), "CriticalOptions");
     assertTrue(certificate.getExtensions().isEmpty(), "Extensions");
     assertFalse(certificate.getSignatureKey().isEmpty(), "SignatureKey");
-    assertTrue(certificate.getSignatureKeyFingerPrint(session.jsch).startsWith("SHA256:"),
+    assertTrue(certificate.getSignatureKeyFingerPrint(jsch).startsWith("SHA256:"),
         "SignatureKeyFingerPrint");
     assertEquals("ssh-ed25519", certificate.getSignatureKeyType(), "SignatureKeyType");
     assertEquals("ssh-ed25519", certificate.getSignatureAlgorithm(), "SignatureAlgorithm");
+  }
+
+
+  /**
+   * A utility method for checking HostKey content.
+   */
+  private void checkKey(HostKey hk, JSch jsch) {
+    assertNotNull(hk, "HostKey");
+    assertTrue(hk.getHost().contains("localhost"), "Host");
+    assertEquals("ssh-ed448", hk.getType(), "Type");
+    assertFalse(hk.getKey().isEmpty(), "Key");
+    assertTrue(hk.getFingerPrint(jsch).startsWith("SHA256:"), "FingerPrint");
+  }
+
+  /**
+   * A utility method for checking HostCertificate to HostKey content.
+   */
+  private void checkCertificateToKey(HostCertificate certificate, HostKey hk, JSch jsch) {
+    assertEquals(certificate.getHost(), hk.getHost());
+    assertTrue(certificate.getKeyType().startsWith(hk.getType()));
+    assertEquals(certificate.getPublicKey(), hk.getKey());
+    assertEquals(certificate.getPublicKeyFingerPrint(jsch), hk.getFingerPrint(jsch));
   }
 }
