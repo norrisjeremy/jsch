@@ -11,7 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,7 +29,7 @@ public class OpenSshCertificateHostKeyVerifierTest {
    */
   @Test
   public void testCheckHostCertificate_withCriticalOptions_shouldReject() throws Exception {
-    Map<String, byte[]> criticalOptions = new HashMap<>();
+    Map<String, byte[]> criticalOptions = new LinkedHashMap<>();
     criticalOptions.put("force-command", "/bin/false".getBytes(UTF_8));
 
     OpenSshCertificate cert =
@@ -45,7 +45,7 @@ public class OpenSshCertificateHostKeyVerifierTest {
    */
   @Test
   public void testCheckHostCertificate_withMultipleCriticalOptions() {
-    Map<String, byte[]> criticalOptions = new HashMap<>();
+    Map<String, byte[]> criticalOptions = new LinkedHashMap<>();
     criticalOptions.put("force-command", "/bin/false".getBytes(UTF_8));
     criticalOptions.put("source-address", "192.168.1.0/24".getBytes(UTF_8));
 
