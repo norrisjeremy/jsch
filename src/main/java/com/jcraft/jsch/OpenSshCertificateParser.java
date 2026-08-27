@@ -3,7 +3,7 @@ package com.jcraft.jsch;
 import com.jcraft.jsch.JSch.InstanceLogger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Parser for OpenSSH certificate format.
@@ -76,7 +76,7 @@ class OpenSshCertificateParser {
     // Principals
     byte[] principalsBlob = buffer.getBytes();
     OpenSshCertificateBuffer principalsBuffer = new OpenSshCertificateBuffer(principalsBlob);
-    Collection<String> principals = principalsBuffer.getStrings();
+    List<String> principals = principalsBuffer.getStrings();
     openSshCertificateBuilder.principals(principals).validAfter(buffer.getLong())
         .validBefore(buffer.getLong()).criticalOptions(buffer.getCriticalOptions())
         .extensions(buffer.getExtensions()).reserved(buffer.getString())

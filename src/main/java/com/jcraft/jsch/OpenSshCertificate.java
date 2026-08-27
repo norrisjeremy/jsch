@@ -1,8 +1,8 @@
 package com.jcraft.jsch;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -76,9 +76,9 @@ class OpenSshCertificate {
   private final String id;
 
   /**
-   * Collection of principal names this certificate is valid for
+   * List of principal names this certificate is valid for
    */
-  private final Collection<String> principals;
+  private final List<String> principals;
 
   /**
    * match ssh-keygen behavior where the default is the epoch
@@ -165,8 +165,8 @@ class OpenSshCertificate {
     return id;
   }
 
-  Collection<String> getPrincipals() {
-    return principals == null ? null : Collections.unmodifiableCollection(principals);
+  List<String> getPrincipals() {
+    return principals == null ? null : Collections.unmodifiableList(principals);
   }
 
   long getValidAfter() {
@@ -235,7 +235,7 @@ class OpenSshCertificate {
     private long serial;
     private int type;
     private String id;
-    private Collection<String> principals;
+    private List<String> principals;
     private long validAfter = MIN_VALIDITY;
     private long validBefore = MAX_VALIDITY;
     private Map<String, byte[]> criticalOptions;
@@ -277,7 +277,7 @@ class OpenSshCertificate {
       return this;
     }
 
-    Builder principals(Collection<String> principals) {
+    Builder principals(List<String> principals) {
       this.principals = principals;
       return this;
     }

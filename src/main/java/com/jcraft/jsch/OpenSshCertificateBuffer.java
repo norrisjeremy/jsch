@@ -2,7 +2,6 @@ package com.jcraft.jsch;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +11,8 @@ import java.util.Map;
  *
  * <p>
  * This class extends the base {@link Buffer} class to provide additional methods specific to
- * parsing OpenSSH certificate format data structures, including string collections, key-value maps,
- * and certificate-specific data types.
+ * parsing OpenSSH certificate format data structures, including string lists, key-value maps, and
+ * certificate-specific data types.
  * </p>
  *
  * <p>
@@ -56,16 +55,16 @@ class OpenSshCertificateBuffer extends Buffer {
   }
 
   /**
-   * Reads a collection of UTF-8 encoded strings from the buffer.
+   * Reads a list of UTF-8 encoded strings from the buffer.
    *
    * <p>
    * This method reads all remaining data in the buffer and parses it as a sequence of
    * length-prefixed UTF-8 strings.
    * </p>
    *
-   * @return collection of strings
+   * @return list of strings
    */
-  Collection<String> getStrings() {
+  List<String> getStrings() {
     List<String> list = new ArrayList<>();
     while (getLength() > 0) {
       String s = Util.byte2str(getString(), StandardCharsets.UTF_8);
